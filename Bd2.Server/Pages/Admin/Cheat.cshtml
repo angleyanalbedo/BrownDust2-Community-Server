@@ -1,0 +1,70 @@
+@page
+@model Bd2.Server.Pages.Admin.CheatModel
+@{
+    ViewData["Title"] = "Cheat 工具";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h4 class="mb-1">Cheat 工具</h4><small class="text-muted">只对选中的玩家写入，不修改客户端设计表。</small></div>
+    <a class="btn btn-outline-secondary" href="/Admin/Dashboard">返回仪表盘</a>
+</div>
+@if (!string.IsNullOrEmpty(Model.Message)) { <div class="alert alert-success">@Model.Message</div> }
+
+<div class="card mb-3">
+    <div class="card-header">动态玩法周期</div>
+    <div class="card-body">
+        <div class="text-muted small mb-2">这里修改运行周期，不会创建设计数据。名称来自游戏本地化表，括号中的 ID 仅用于确认。</div>
+        <form method="post" asp-page-handler="ActivateMonsterHunt" class="row g-2 align-items-end mb-2">
+            <div class="col-md-6"><label class="form-label">选择魔物狩猎</label><select class="form-select" name="monsterHuntId" required><option value="">请选择魔物狩猎</option>@foreach (var hunt in Model.MonsterHunts) {<option value="@hunt.Id">@hunt.Name / @Bd2.Server.Common.Managers.PackManager.GetName(hunt.PackId)（狩猎 ID @hunt.Id / 怪物 @hunt.MonsterId）</option>}</select></div>
+            <div class="col-auto"><label class="form-label">赛季</label><input class="form-control" name="season" type="number" min="1" value="1" required></div>
+            <div class="col-auto"><label class="form-label">开放天数</label><input class="form-control" name="durationDays" type="number" min="1" max="365" value="30" required></div>
+            <div class="col-auto"><button class="btn btn-outline-warning">切换魔物狩猎周期</button></div>
+        </form>
+        <form method="post" asp-page-handler="ActivateEvents" class="row g-2 align-items-end">
+            <div class="col-auto"><label class="form-label">活动开放天数</label><input class="form-control" name="durationDays" type="number" min="1" max="365" value="30" required></div>
+            <div class="col-auto"><button class="btn btn-outline-success">开放已配置活动</button></div>
+        </form>
+        <form method="post" asp-page-handler="ConfigureEvent" class="row g-2 align-items-end mt-1">
+            <div class="col-md-8"><label class="form-label">选择活动</label><select class="form-select" name="eventKey" required><option value="">请选择活动</option>@foreach (var ev in Model.Events) {<option value="@ev.EventType|@ev.EventId|@ev.EventSubId">@ev.Name</option>}</select></div>
+            <div class="col-auto"><label class="form-label">天数</label><input class="form-control" name="durationDays" type="number" min="1" max="365" value="30" required></div>
+            <div class="col-auto"><button class="btn btn-outline-primary">新增/更新活动</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">卡池运行时管理</div>
+    <div class="card-body">
+        <div class="text-muted small mb-2">常驻卡池由设计表自动开放；临时卡池必须在这里选择并开放。关闭只修改运行时配置，不修改 common 设计库。</div>
+        <div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>卡池</th><th>类型</th><th>GroupId</th><th>状态</th><th>操作</th></tr></thead><tbody>
+        @foreach (var gacha in Model.Gachas)
+        {
+            <tr><td>@gacha.Name</td><td>@(gacha.Type == 1 ? "服装" : "装备")</td><td>@gacha.RowId</td><td>@(gacha.IsPermanent ? "常驻" : (gacha.Enabled ? "开放" : "关闭"))</td><td>
+                @if (!gacha.IsPermanent && !gacha.Enabled) { <form method="post" asp-page-handler="ActivateGacha" class="d-inline"><input type="hidden" name="gachaGroupRowId" value="@gacha.RowId" /><input class="form-control form-control-sm d-inline-block" style="width:90px" name="durationDays" type="number" min="1" max="365" value="30" /><button class="btn btn-sm btn-outline-success">开放</button></form> }
+                @if (!gacha.IsPermanent && gacha.Enabled) { <form method="post" asp-page-handler="DisableGacha" class="d-inline" onsubmit="return confirm('关闭这个临时卡池？')"><input type="hidden" name="gachaGroupRowId" value="@gacha.RowId" /><button class="btn btn-sm btn-outline-danger">关闭</button></form> }
+            </td></tr>
+        }
+        </tbody></table></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">玩家选择</div>
+    <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+        <thead><tr><th>UID</th><th>玩家</th><th>操作</th></tr></thead>
+        <tbody>
+        @foreach (var player in Model.Players)
+        {
+            <tr><td>@player.OwnerIndex</td><td>@(string.IsNullOrWhiteSpace(player.UserId) ? "未设置名称" : player.UserId)</td><td>
+                <a class="btn btn-sm btn-outline-primary" href="/Admin/PlayerDetail?id=@player.OwnerIndex">角色详情</a>
+                <form method="post" asp-page-handler="MaxFriendship" class="d-inline" onsubmit="return confirm('将该玩家已有亲密度角色设置为 10 级？')"><input type="hidden" name="uid" value="@player.OwnerIndex" /><button class="btn btn-sm btn-outline-warning">亲密度 10 级</button></form>
+                <form method="post" asp-page-handler="UnlockDating" class="d-inline" onsubmit="return confirm('更新该玩家已有约会记录？')"><input type="hidden" name="uid" value="@player.OwnerIndex" /><button class="btn btn-sm btn-outline-success">约会进度</button></form>
+                <form method="post" asp-page-handler="AddAllCostumes" class="d-inline"><input type="hidden" name="uid" value="@player.OwnerIndex" /><button class="btn btn-sm btn-outline-info">添加全部服装</button></form>
+                <form method="post" asp-page-handler="UnlockSkins" class="d-inline"><input type="hidden" name="uid" value="@player.OwnerIndex" /><button class="btn btn-sm btn-outline-info">解锁皮肤</button></form>
+                <form method="post" asp-page-handler="UnlockFeatures" class="d-inline"><input type="hidden" name="uid" value="@player.OwnerIndex" /><button class="btn btn-sm btn-outline-danger">开放全部独立玩法</button></form>
+                <form method="post" asp-page-handler="ClearBrokenFeatureTickets" class="d-inline" onsubmit="return confirm('只清理旧格式功能凭证，不影响普通物品，确定继续？')"><input type="hidden" name="uid" value="@player.OwnerIndex" /><button class="btn btn-sm btn-outline-secondary">清理旧凭证</button></form>
+            </td></tr>
+        }
+        </tbody>
+    </table></div>
+</div>

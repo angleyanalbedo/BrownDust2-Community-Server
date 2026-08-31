@@ -1,0 +1,268 @@
+@page
+@model Bd2.Server.Pages.Admin.PlayerDetailModel
+@{
+    ViewData["Title"] = "玩家详情";
+
+    var user = Model.User;
+    if (user == null)
+    {
+        <div class="alert alert-warning">玩家不存在</div>
+        return;
+    }
+}
+
+<a href="/Admin/Players" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> 返回列表</a>
+<a href="/Admin/Quests?uid=@user.UserId" class="btn btn-sm btn-outline-info mb-3">任务管理</a>
+
+<!-- 基础信息 -->
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">基础信息</span>
+        <div>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPlayerModal">编辑属性</button>
+            <a href="?id=@user.OwnerIndex" class="btn btn-sm btn-outline-secondary">刷新</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3"><strong>UID:</strong> @user.OwnerIndex</div>
+            <div class="col-md-3"><strong>UserID:</strong> @user.UserId</div>
+            <div class="col-md-3"><strong>金币:</strong> @user.Gold.ToString("N0")</div>
+            <div class="col-md-3"><strong>付费钻:</strong> @user.Jewelry</div>
+            <div class="col-md-3"><strong>免费钻:</strong> @user.FreeJewelry</div>
+            <div class="col-md-3"><strong>经验:</strong> @user.Exp</div>
+            <div class="col-md-3"><strong>催化剂:</strong> @user.Catalyst</div>
+            <div class="col-md-3"><strong>勋章:</strong> @user.Medal</div>
+            <div class="col-md-3"><strong>邪恶城堡币:</strong> @user.EvilCastleCoin</div>
+            <div class="col-md-3"><strong>加入时间:</strong> @Model.FmtTs(user.JoinTime)</div>
+            <div class="col-md-3"><strong>最后登录:</strong> @Model.FmtTs(user.LoginDate)</div>
+            <div class="col-md-3">
+                <strong>状态:</strong>
+                @if (user.BlockDate > 0)
+                {
+                    <span class="badge bg-danger">封禁</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">正常</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 角色 -->
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">角色列表 (@Model.Chars.Count)</span>
+        <a class="btn btn-sm btn-outline-primary" href="/Admin/PlayerCostumes?id=@Model.User!.OwnerIndex">服装管理</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-striped mb-0">
+            <thead class="table-light">
+                <tr><th>InvenIndex</th><th>角色名</th><th>CharID</th><th>等级</th><th>HP</th><th>天赋</th><th>天赋经验</th><th>时装</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Chars)
+                {
+                    <tr>
+                        <td>@c.InvenIndex</td>
+                        <td>@(Model.CharNames.TryGetValue(c.Id, out var cn) ? $"{cn} (ID: {c.Id})" : $"ID:{c.Id}")</td>
+                        <td>@c.Id</td>
+                        <td>@c.Level</td>
+                        <td>@c.Hp</td>
+                        <td>@c.TalentLevel</td>
+                        <td>@c.TalentExp</td>
+                        <td>@c.CostumeId</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-edit-char"
+                                    data-index="@c.InvenIndex" data-level="@c.Level" data-hp="@c.Hp" data-talent="@c.TalentLevel"
+                                    data-bs-toggle="modal" data-bs-target="#editCharModal">编辑</button>
+                            <form method="post" asp-page-handler="DeleteChar" class="d-inline" onsubmit="return confirm('确认删除该角色？')"><input type="hidden" name="OwnerIndex" value="@Model.User!.OwnerIndex" /><input type="hidden" name="InvenIndex" value="@c.InvenIndex" /><button class="btn btn-sm btn-outline-danger">删除</button></form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 装备 -->
+<div class="card mb-3">
+    <div class="card-header fw-semibold">装备列表 (@Model.Equips.Count)</div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-striped mb-0">
+            <thead class="table-light">
+                <tr><th>InvenIndex</th><th>装备名</th><th>装备ID</th><th>槽位</th><th>等级</th><th>品级</th><th>装备角色</th><th>主属性</th><th>副属性</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Equips)
+                {
+                    <tr>
+                        <td>@e.InvenIndex</td>
+                        <td>@(Model.EquipNames.TryGetValue(e.Id, out var en) ? en : $"#{e.Id}")</td>
+                        <td>@e.Id</td>
+                        <td>@e.SlotType</td>
+                        <td>@e.Level</td>
+                        <td>@e.Rank</td>
+                        <td>@e.UseChar</td>
+                        <td style="max-width:150px;" class="text-truncate" title="@e.MainOption">@e.MainOption</td>
+                        <td style="max-width:200px;" class="text-truncate" title="@e.SubOption">@e.SubOption</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 物品 -->
+<div class="card mb-3">
+    <div class="card-header fw-semibold">物品背包 (@Model.Items.Count)</div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-striped mb-0">
+            <thead class="table-light">
+                <tr><th>InvenIndex</th><th>物品ID</th><th>名称</th><th>类型</th><th>数量</th><th>过期时间</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var i in Model.Items)
+                {
+                    <tr>
+                        <td>@i.InvenIndex</td>
+                        <td>@i.Id</td>
+                        <td>@Model.ItemNames.GetValueOrDefault(i.InvenIndex, $"ID:{i.Id}")</td>
+                        <td>@i.Type</td>
+                        <td>@i.Count</td>
+                        <td>@(i.ExpiryTime == 0 ? "永久" : Model.FmtTs(i.ExpiryTime))</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 编辑玩家弹窗 -->
+<div class="modal fade" id="editPlayerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-page-handler="UpdatePlayer">
+            <input type="hidden" name="OwnerIndex" value="@user.OwnerIndex" />
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">编辑玩家属性</h5></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">金币</label><input type="number" name="Gold" value="@user.Gold" class="form-control" /></div>
+                    <div class="mb-3"><label class="form-label">付费钻</label><input type="number" name="Jewelry" value="@user.Jewelry" class="form-control" /></div>
+                    <div class="mb-3"><label class="form-label">免费钻</label><input type="number" name="FreeJewelry" value="@user.FreeJewelry" class="form-control" /></div>
+                    <div class="mb-3"><label class="form-label">经验</label><input type="number" name="Exp" value="@user.Exp" class="form-control" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 编辑角色弹窗 -->
+<div class="modal fade" id="editCharModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-page-handler="UpdateChar">
+            <input type="hidden" name="InvenIndex" id="charInvenIndex" />
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">编辑角色</h5></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">等级</label><input type="number" name="Level" id="charLevel" class="form-control" min="1" max="999" /></div>
+                    <div class="mb-3"><label class="form-label">HP</label><input type="number" name="Hp" id="charHp" class="form-control" min="0" /></div>
+                    <div class="mb-3"><label class="form-label">天赋等级</label><input type="number" name="TalentLevel" id="charTalent" class="form-control" min="0" max="999" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 添加角色弹窗 -->
+<div class="modal fade" id="addCharModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-page-handler="AddChar">
+            <input type="hidden" name="OwnerIndex" value="@user.OwnerIndex" />
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">添加角色</h5></div>
+                <div class="modal-body">
+                    <div class="mb-3 position-relative">
+                        <label class="form-label">角色搜索（从 NameTextTable 查询）</label>
+                        <input type="text" id="charSearch" class="form-control" placeholder="输入角色名称或ID搜索..." autocomplete="off" />
+                        <div id="charDropdown" class="list-group position-absolute w-100" style="z-index:1000; display:none; max-height:300px; overflow-y:auto;"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">角色 ID</label><input type="number" name="CharId" id="addCharId" class="form-control" min="1" /></div>
+                    <div class="mb-3"><label class="form-label">等级</label><input type="number" name="Level" class="form-control" value="1" min="1" max="999" /></div>
+                    <div class="mb-3"><label class="form-label">HP</label><input type="number" name="Hp" class="form-control" value="100" min="0" /></div>
+                    <div class="mb-3"><label class="form-label">天赋等级</label><input type="number" name="TalentLevel" class="form-control" value="0" min="0" max="999" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-success">添加</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-edit-char').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('charInvenIndex').value = btn.dataset.index;
+                document.getElementById('charLevel').value = btn.dataset.level;
+                document.getElementById('charHp').value = btn.dataset.hp;
+                document.getElementById('charTalent').value = btn.dataset.talent;
+            });
+        });
+
+        // 添加角色搜索自动补全
+        const charSearch = document.getElementById('charSearch');
+        const charDropdown = document.getElementById('charDropdown');
+        const addCharId = document.getElementById('addCharId');
+        let debounceTimer;
+
+        charSearch.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            const q = this.value.trim();
+            if (q.length < 1) { charDropdown.style.display = 'none'; return; }
+
+            debounceTimer = setTimeout(() => {
+                        fetch(`/api/Admin/CharacterSearch?q=${encodeURIComponent(q)}&limit=15`)
+                    .then(r => r.json())
+                    .then(res => {
+                        if (!res.data || res.data.length === 0) {
+                            charDropdown.style.display = 'none';
+                            return;
+                        }
+                        charDropdown.innerHTML = res.data.map(item =>
+                            `<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-id="${item.id}" data-name="${item.name}">
+                                <span>${item.name}</span>
+                                <small class="text-muted">ID: ${item.id}</small>
+                            </button>`
+                        ).join('');
+                        charDropdown.style.display = 'block';
+
+                        charDropdown.querySelectorAll('button').forEach(btn => {
+                            btn.addEventListener('click', function () {
+                                addCharId.value = this.dataset.id;
+                                charSearch.value = this.dataset.name;
+                                charDropdown.style.display = 'none';
+                            });
+                        });
+                    });
+            }, 200);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!charSearch.contains(e.target) && !charDropdown.contains(e.target)) {
+                charDropdown.style.display = 'none';
+            }
+        });
+    </script>
+}

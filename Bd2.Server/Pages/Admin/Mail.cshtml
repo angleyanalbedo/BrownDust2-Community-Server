@@ -1,0 +1,115 @@
+@page
+@model Bd2.Server.Pages.Admin.MailModel
+@{
+    ViewData["Title"] = "发送邮件";
+}
+
+<div class="card shadow-sm" style="max-width:760px;">
+    <div class="card-header fw-semibold">发送邮件</div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.Message))
+        {
+            <div class="alert alert-@(Model.IsSuccess ? "success" : "danger") py-2">@Model.Message</div>
+        }
+
+        <form method="post" id="mailForm">
+            <h6 class="border-bottom pb-2 mb-3">收件人</h6>
+            <h6 class="border-bottom pb-2 mb-3 mt-4">奖励</h6>
+            <div class="mb-3">
+                <label class="form-label">目标 UID</label>
+                <input asp-for="Input.Uid" class="form-control" placeholder="玩家 UserID" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">物品类型</label>
+                <select asp-for="Input.Type" class="form-select">
+                    <option value="4">金币 (Gold)</option>
+                    <option value="14" selected>物品 (UseItem)</option>
+                    <option value="10">装备 (Equip)</option>
+                    <option value="2">钻石 (Jewelry)</option>
+                    <option value="0">其他</option>
+                </select>
+            </div>
+            <div class="mb-3 position-relative" id="searchGroup">
+                <label class="form-label">奖励搜索</label>
+                <input type="text" id="itemSearch" class="form-control" placeholder="输入物品名称或ID搜索..." autocomplete="off" />
+                <div id="itemDropdown" class="list-group position-absolute w-100" style="z-index:1000; display:none; max-height:300px; overflow-y:auto;"></div>
+            </div>
+            <div class="mb-3" id="itemIdGroup">
+                <label class="form-label">物品 ID</label>
+                <input asp-for="Input.ItemId" class="form-control" type="number" min="0" id="itemIdInput" />
+            </div>
+            <div class="mb-3" id="countGroup">
+                <label class="form-label">数量</label>
+                <input asp-for="Input.Count" class="form-control" type="number" min="1" />
+            </div>
+            <h6 class="border-bottom pb-2 mb-3 mt-4">邮件内容</h6>
+            <div class="mb-3">
+                <label class="form-label">标题</label>
+                <input asp-for="Input.Title" class="form-control" placeholder="管理员邮件" />
+            </div>
+            <button type="submit" class="btn btn-primary px-4">发送邮件</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const searchInput = document.getElementById('itemSearch');
+        const dropdown = document.getElementById('itemDropdown');
+        const itemIdInput = document.getElementById('itemIdInput');
+        const itemTypeInput = document.querySelector('[name="Input.Type"]');
+        const searchGroup = document.getElementById('searchGroup');
+        const itemIdGroup = document.getElementById('itemIdGroup');
+        const countGroup = document.getElementById('countGroup');
+        let debounceTimer;
+
+        function updateRewardFields() {
+            const cash = itemTypeInput.value === '4' || itemTypeInput.value === '2';
+            searchGroup.style.display = cash ? 'none' : 'block';
+            itemIdGroup.style.display = cash ? 'none' : 'block';
+            countGroup.querySelector('input').value = countGroup.querySelector('input').value || '1';
+            if (cash) itemIdInput.value = '0';
+        }
+        itemTypeInput.addEventListener('change', updateRewardFields);
+        updateRewardFields();
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            const q = this.value.trim();
+            if (q.length < 1) { dropdown.style.display = 'none'; return; }
+
+            debounceTimer = setTimeout(() => {
+                fetch(`/api/Admin/ItemSearch?q=${encodeURIComponent(q)}&limit=15&type=${encodeURIComponent(itemTypeInput.value)}`)
+                    .then(r => { if (!r.ok) throw new Error('搜索请求失败'); return r.json(); })
+                    .then(res => {
+                        if (!res.data || res.data.length === 0) {
+                            dropdown.style.display = 'none';
+                            return;
+                        }
+                        dropdown.innerHTML = res.data.map(item =>
+                            `<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-id="${item.id}" data-name="${item.name}">
+                                <span>${item.name}</span>
+                                <small class="text-muted">ID: ${item.id}</small>
+                            </button>`
+                        ).join('');
+                        dropdown.style.display = 'block';
+
+                        dropdown.querySelectorAll('button').forEach(btn => {
+                            btn.addEventListener('click', function () {
+                                itemIdInput.value = this.dataset.id;
+                                searchInput.value = this.dataset.name;
+                                dropdown.style.display = 'none';
+                            });
+                        });
+                    })
+                    .catch(() => { dropdown.innerHTML = '<div class="list-group-item text-danger">搜索失败，请检查服务端</div>'; dropdown.style.display = 'block'; });
+            }, 200);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+}

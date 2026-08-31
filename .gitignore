@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.db
+design_dbs/
+logs/
+*.log
+*.pdb
+*.dll
+*.exe
+*.zip
+*.7z

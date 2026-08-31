@@ -1,0 +1,29 @@
+/* BD2 Admin - Global Styles */
+
+/* Base */
+body { background: #f0f2f5; }
+
+/* Sidebar */
+.sidebar { width: 220px; min-height: 100vh; background: #1a1a2e; position: fixed; top: 0; left: 0; z-index: 100; }
+.sidebar-brand { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.sidebar-brand h4 { color: #e94560; margin: 0; font-weight: 700; }
+.sidebar-brand small { color: #888; }
+.sidebar-nav { padding: 12px 0; }
+.sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: #aaa; text-decoration: none; font-size: 14px; transition: all 0.2s; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(233,69,96,0.15); color: #e94560; border-right: 3px solid #e94560; }
+.sidebar-footer { position: absolute; bottom: 0; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding: 12px 0; }
+
+/* Main Content */
+.main-content { margin-left: 220px; min-height: 100vh; }
+.topbar { height: 56px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+.page-body { padding: 24px; }
+
+/* Stat Cards */
+.stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.stat-card .value { font-size: 28px; font-weight: 700; }
+.stat-card .label { font-size: 13px; color: #999; margin-top: 4px; }
+.stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+/* Dashboard */
+.text-purple { color: #722ed1 !important; }
+.bg-purple { background-color: #f9f0ff !important; }

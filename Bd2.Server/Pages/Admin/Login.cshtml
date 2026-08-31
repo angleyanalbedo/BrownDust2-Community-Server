@@ -1,0 +1,31 @@
+@page
+@model Bd2.Server.Pages.Admin.LoginModel
+@{
+    ViewData["Title"] = "登录";
+    ViewData["NoLayout"] = "1";
+    Layout = "/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);">
+    <div class="card shadow" style="width:400px;">
+        <div class="card-body p-4">
+            <h3 class="text-center mb-1">BD2 Admin</h3>
+            <p class="text-center text-muted mb-4">棕色尘埃2 管理面板</p>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger py-2">@Model.ErrorMessage</div>
+            }
+
+            <form method="post">
+                <div class="mb-3">
+                    <input asp-for="Input.UserName" class="form-control form-control-lg" placeholder="用户名" />
+                </div>
+                <div class="mb-3">
+                    <input asp-for="Input.Password" class="form-control form-control-lg" type="password" placeholder="密码" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">登 录</button>
+            </form>
+        </div>
+    </div>
+</div>

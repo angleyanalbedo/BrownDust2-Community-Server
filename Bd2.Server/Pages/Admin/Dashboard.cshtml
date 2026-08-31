@@ -1,0 +1,65 @@
+@page
+@model Bd2.Server.Pages.Admin.DashboardModel
+@{
+    ViewData["Title"] = "仪表盘";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people"></i></div>
+                <div><div class="value">@Model.Stats.PlayerCount</div><div class="label">玩家总数</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-person-bounding-box"></i></div>
+                <div><div class="value">@Model.Stats.CharCount</div><div class="label">角色总数</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-shield-shaded"></i></div>
+                <div><div class="value">@Model.Stats.EquipCount</div><div class="label">装备总数</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-purple bg-opacity-10 text-purple"><i class="bi bi-box-seam"></i></div>
+                <div><div class="value">@Model.Stats.ItemCount</div><div class="label">物品总数</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-envelope"></i></div>
+                <div><div class="value">@Model.Stats.MailCount</div><div class="label">邮件总数</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-fire"></i></div>
+                <div><div class="value">@Model.Stats.TodayPlayers</div><div class="label">今日活跃</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header fw-semibold">快速操作</div>
+    <div class="card-body">
+        <a href="/Admin/Players" class="btn btn-primary me-2">玩家管理</a>
+        <a href="/Admin/Mail" class="btn btn-success me-2">发送邮件</a>
+        <a href="/Admin/Cheat" class="btn btn-outline-danger">Cheat 工具</a>
+    </div>
+</div>
